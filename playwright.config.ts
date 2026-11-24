@@ -1,7 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /** Specs that must run in a fresh, unauthenticated context. */
-const anonymousSpecs = [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/];
+const anonymousSpecs = [
+  /login\.spec\.ts/,
+  /auth-guard\.spec\.ts/,
+  /navigation\.spec\.ts/,
+  /api\.spec\.ts/,
+  /theme\.spec\.ts/,
+];
 
 export default defineConfig({
   testDir: './tests',

@@ -26,7 +26,35 @@ const PRODUCTS = [
 function htmlPage(title, body) {
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>${title}</title></head>
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 2rem auto;
+    max-width: 40rem;
+    padding: 0 1rem;
+    background: #121212;
+    color: #e6e6e6;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  a { color: #8ab4f8; }
+  nav { display: flex; gap: 1rem; margin-bottom: 1rem; }
+  button, input {
+    background: #1e1e1e;
+    color: inherit;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 0.4rem 0.75rem;
+    font: inherit;
+  }
+  button { cursor: pointer; }
+  button:hover { background: #2c2c2c; }
+  li { margin: 0.25rem 0; }
+</style>
+</head>
 <body>
 ${body}
 </body>

@@ -31,13 +31,14 @@ tests/
   auth-guard.spec.ts     # unauthenticated access redirects to login
   navigation.spec.ts     # 404 page
   api.spec.ts            # API endpoint tests
+  theme.spec.ts          # dark theme (background/text colors)
 specs/                   # markdown test plans produced by the planner agent
 opencode.json            # project opencode config: MCP server + 3 agent definitions
 AGENTS.md                # conventions the AI agents follow
 .github/workflows/       # CI pipeline (GitHub Actions)
 ```
 
-Projects in `playwright.config.ts`: `setup` (auth) → `firefox` (authenticated, `storageState`) and `firefox-anon` (unauthenticated, runs `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`).
+Projects in `playwright.config.ts`: `setup` (auth) → `firefox` (authenticated, `storageState`) and `firefox-anon` (no `storageState`, runs the anonymous specs: `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`, `api.spec.ts`, `theme.spec.ts`).
 
 ## Quick start
 
