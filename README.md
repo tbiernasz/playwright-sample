@@ -6,11 +6,11 @@ Playwright (TypeScript) project wired into [opencode](https://opencode.ai) using
 
 - **Node.js** ≥ 20
 - **npm** (bundled with Node)
-- A Chromium-compatible browser (installed by Playwright — see Quick Start)
+- Firefox (installed by Playwright — see Quick Start)
 
 ## Stack
 
-- Playwright Test 1.65 (TypeScript, Chromium)
+- Playwright Test 1.65 (TypeScript, Firefox)
 - opencode + Playwright agents (configured in `opencode.json`, prompts in `.opencode/prompts/`)
 - Playwright Test MCP server (`npx playwright run-test-mcp-server`)
 - Local LLM: Qwen3.8-27B via llama.cpp (OpenAI-compatible endpoint, tool use enabled, 65k context)
@@ -37,13 +37,13 @@ AGENTS.md                # conventions the AI agents follow
 .github/workflows/       # CI pipeline (GitHub Actions)
 ```
 
-Projects in `playwright.config.ts`: `setup` (auth) → `chromium` (authenticated, `storageState`) and `chromium-anon` (unauthenticated, runs `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`).
+Projects in `playwright.config.ts`: `setup` (auth) → `firefox` (authenticated, `storageState`) and `firefox-anon` (unauthenticated, runs `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`).
 
 ## Quick start
 
 ```bash
 npm ci
-npx playwright install chromium
+npx playwright install firefox
 npm test          # auto-starts the mock app via the webServer config, runs all tests
 npm run report    # open the HTML report
 ```
@@ -101,7 +101,7 @@ Run tagged subsets: `npx playwright test --grep @smoke`
 ## Key patterns (learned during the planner → generator → healer cycle)
 
 1. **Project `storageState` applies to *every* context in the project — including manual ones.**
-   The runner injects an instrumentation hook (`runBeforeCreateBrowserContext` in `@playwright/test`) that merges the project's `use` options (including `storageState`) into every `browser.newContext()` and `request.newContext()` call. A "fresh" `browser.newContext()` in an authenticated project is therefore *not* anonymous — it carries the stored cookies. **Fix:** give unauthenticated tests their own project with no `storageState` (`chromium-anon` here). Alternative: `await context.clearCookies()` right after creating the manual context.
+   The runner injects an instrumentation hook (`runBeforeCreateBrowserContext` in `@playwright/test`) that merges the project's `use` options (including `storageState`) into every `browser.newContext()` and `request.newContext()` call. A "fresh" `browser.newContext()` in an authenticated project is therefore *not* anonymous — it carries the stored cookies. **Fix:** give unauthenticated tests their own project with no `storageState` (`firefox-anon` here). Alternative: `await context.clearCookies()` right after creating the manual context.
 
 2. **One `storageState` = one server-side session = shared state under `fullyParallel`.**
    If the app keeps per-session server state (e.g. a cart keyed by session id), every test in the project shares that state, and sibling tests corrupt each other mid-flow (a `beforeEach` cart-clear in test B empties test A's cart). **Fix:** mint a fresh session per test using a shared fixture (`tests/fixtures.ts`):
@@ -118,7 +118,7 @@ Run tagged subsets: `npx playwright test --grep @smoke`
 | Problem | Solution |
 |---------|----------|
 | `EADDRINUSE: address already in use :::3000` | A previous server instance is still running. Kill it: `npx kill-port 3000` or `taskkill /F /IM node.exe` on Windows. |
-| `browserType.launch: Executable doesn't exist` | Run `npx playwright install chromium` to download the browser. |
+| `browserType.launch: Executable doesn't exist` | Run `npx playwright install firefox` to download the browser. |
 | Tests pass locally but fail in CI | Check that `CI=true` is set (GitHub Actions sets it automatically). The config enables retries and fixed workers in CI. |
 | Shared cart state between tests | Use `authenticatedPage` from `tests/fixtures.ts` to mint a fresh session per test. |
 

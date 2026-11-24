@@ -24,20 +24,10 @@ export default defineConfig({
     },
   },
   projects: [
-    { name: 'setup', testMatch: /auth\.setup\.ts/ },
     {
-      name: 'chromium',
-      testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'tests/.auth/user.json',
-      },
-      dependencies: ['setup'],
-    },
-    {
-      name: 'chromium-anon',
-      testMatch: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/],
-      use: { ...devices['Desktop Chrome'] },
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+      use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'firefox',
@@ -52,15 +42,7 @@ export default defineConfig({
       name: 'firefox-anon',
       testMatch: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/],
       use: { ...devices['Desktop Firefox'] },
+      dependencies: ['setup'],
     },
-    // {
-    //   name: 'webkit',
-    //   testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //     storageState: 'tests/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
   ],
 });

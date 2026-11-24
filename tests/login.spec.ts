@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Login', () => {
   test('login with a wrong password shows an error and does not log in', async ({ page }) => {
-    // 1. Navigate to /login (chromium-anon project has no storageState, so this is unauthenticated).
+    // 1. Navigate to /login (firefox-anon project has no storageState, so this is unauthenticated).
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
     await expect(page.getByTestId('email-input')).toBeVisible();
