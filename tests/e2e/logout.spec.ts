@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect } from '../fixtures';
 
 test.describe('Logout', () => {
   test('user can log out and is redirected to login @smoke', async ({ authenticatedPage: page }) => {

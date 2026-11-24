@@ -1,7 +1,7 @@
 // spec: specs/checkout.test.plan.md
 // seed: tests/auth.setup.ts
 
-import { test, expect } from './fixtures';
+import { test, expect } from '../fixtures';
 
 test.describe('Cart State', () => {
   test('first visit to the cart shows an empty state', async ({ authenticatedPage: page }) => {

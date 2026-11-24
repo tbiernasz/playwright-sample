@@ -1,7 +1,7 @@
 // spec: specs/checkout.test.plan.md
 // seed: tests/auth.setup.ts
 
-import { test, expect } from './fixtures';
+import { test, expect } from '../fixtures';
 
 test.describe('Checkout Flow', () => {
   test('user can add an item to the cart and complete checkout @regression', async ({ authenticatedPage: page }) => {

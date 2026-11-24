@@ -23,22 +23,24 @@ app/server.js            # mock shop: login -> dashboard -> cart -> checkout (po
 tests/
   fixtures.ts            # shared Playwright fixtures (authenticatedPage)
   auth.setup.ts          # login once, saves storageState to tests/.auth/user.json
-  smoke.spec.ts          # smoke test (dashboard loads)
-  checkout.spec.ts       # full checkout flow + multi-item total
-  cart.spec.ts           # empty-cart state
-  login.spec.ts          # failed login + successful login (runs unauthenticated)
-  logout.spec.ts         # logout flow
-  auth-guard.spec.ts     # unauthenticated access redirects to login
-  navigation.spec.ts     # 404 page
-  api.spec.ts            # API endpoint tests
-  theme.spec.ts          # dark theme (background/text colors)
+  api/
+    shop-api.spec.ts     # request-level API tests (no browser)
+  e2e/
+    smoke.spec.ts        # smoke test (dashboard loads)
+    checkout.spec.ts     # full checkout flow + multi-item total
+    cart.spec.ts         # empty-cart state
+    login.spec.ts        # failed login + successful login (runs unauthenticated)
+    logout.spec.ts       # logout flow
+    auth-guard.spec.ts   # unauthenticated access redirects to login
+    navigation.spec.ts   # 404 page
+    theme.spec.ts        # dark theme (background/text colors)
 specs/                   # markdown test plans produced by the planner agent
 opencode.json            # project opencode config: MCP server + 3 agent definitions
 AGENTS.md                # conventions the AI agents follow
 .github/workflows/       # CI pipeline (GitHub Actions)
 ```
 
-Projects in `playwright.config.ts`: `setup` (auth) → `firefox` (authenticated, `storageState`) and `firefox-anon` (no `storageState`, runs the anonymous specs: `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`, `api.spec.ts`, `theme.spec.ts`).
+Projects in `playwright.config.ts`: `setup` (auth) → `api` (request-only, no browser), `firefox` (authenticated, `storageState`) and `firefox-anon` (no `storageState`, runs the anonymous specs: `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`, `theme.spec.ts`).
 
 ## Quick start
 
@@ -107,7 +109,7 @@ Run tagged subsets: `npx playwright test --grep @smoke`
 2. **One `storageState` = one server-side session = shared state under `fullyParallel`.**
    If the app keeps per-session server state (e.g. a cart keyed by session id), every test in the project shares that state, and sibling tests corrupt each other mid-flow (a `beforeEach` cart-clear in test B empties test A's cart). **Fix:** mint a fresh session per test using a shared fixture (`tests/fixtures.ts`):
    ```ts
-   import { test, expect } from './fixtures';
+   import { test, expect } from '../fixtures';
 
    test('example', async ({ authenticatedPage: page }) => {
      // Each test gets its own fresh server session and empty cart.
