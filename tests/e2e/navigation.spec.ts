@@ -7,6 +7,7 @@ test.describe('Navigation', () => {
     const response = await page.goto('/this-route-does-not-exist');
     expect(response?.status()).toBe(404);
     await expect(page.getByRole('heading', { name: '404 Not found' })).toBeVisible();
+    await expect(page.getByTestId('back-link')).toBeVisible();
     await context.close();
   });
 });

@@ -1,8 +1,10 @@
 # Checkout Flow Test Plan
 
+> **Note:** This plan was the initial planner output. The suite has since expanded to cover cart quantities, clearing, and request-level API tests; the specs under `tests/` are authoritative.
+
 ## Application Overview
 
-Mock shop web app served at http://localhost:3000 (app/server.js). A single-user store where unauthenticated visitors are redirected to /login. Valid credentials: test@example.com / password123 (form fields labelled 'Email' and 'Password', submit button 'Sign in'). After sign-in the user lands on the Dashboard, which lists two products (Coffee Mug $10.00, Logo T-Shirt $20.00) each with an 'Add to cart' button, plus a 'Cart' nav link. The checkout flow is: Dashboard -> Add to cart -> Cart -> Proceed to checkout -> Checkout (order summary + total) -> Place order -> Order confirmed. This plan focuses on the checkout flow area and covers: (1) the happy-path checkout, (2) multi-item total calculation, (3) a negative login case (wrong password), and (4) the empty-cart state on first visit. Authenticated suites rely on the storageState produced by tests/auth.setup.ts; the login suite runs in a fresh, unauthenticated browser context. Each scenario assumes a fresh browser state; server-side cart state is keyed per session (cookie 'sid') and is isolated per Playwright test context.
+Mock shop web app served at http://localhost:3000 (app/server.js). A single-user store where unauthenticated visitors are redirected to /login. Valid credentials: test@example.com / password123 (form fields labelled 'Email' and 'Password', submit button 'Sign in'). After sign-in the user lands on the Dashboard, which lists two products (Coffee Mug $10.00, Logo T-Shirt $20.00) each with an 'Add to cart' button and a confirmation flash, plus a 'Cart' nav link with a live count. The cart supports quantity changes, line removal, and clearing; `/api/products` and `/api/cart` expose the catalog and session cart for request-level tests. The checkout flow is: Dashboard -> Add to cart -> Cart -> Proceed to checkout -> Checkout (order summary + total) -> Place order -> Order confirmed. This plan focuses on the checkout flow area and covers: (1) the happy-path checkout, (2) multi-item total calculation, (3) a negative login case (wrong password), and (4) the empty-cart state on first visit. Authenticated suites rely on the storageState produced by tests/auth.setup.ts; the login suite runs in a fresh, unauthenticated browser context. Each scenario assumes a fresh browser state; server-side cart state is keyed per session (cookie 'sid') and is isolated per Playwright test context.
 
 ## Test Environment
 
@@ -28,17 +30,25 @@ Prefer `getByTestId`, then `getByRole` / `getByLabel`, then `getByText` (per `AG
 | `/` (Dashboard) | Page heading | `getByRole('heading', { name: 'Dashboard' })` | — |
 | `/` (Dashboard) | Product item | `getByTestId('product-item')` | `product-item` |
 | `/` (Dashboard) | Add to cart | `getByTestId('add-to-cart')` | `add-to-cart` |
-| `/` (Dashboard) | Cart nav link | `getByRole('link', { name: 'Cart' })` | `cart-link` |
-| `/cart` | Page heading | `getByRole('heading', { name: 'Cart' })` | — |
-| `/cart` | Empty message | `getByText('Your cart is empty.')` | — |
+| `/` (Dashboard) | Add confirmation | `getByTestId('flash')` | `flash` |
+| `/` (Dashboard) | Cart nav link | `getByRole('link', { name: /Cart/ })` | `cart-link` |
+| `/` (Dashboard) | Cart badge | `getByTestId('cart-count')` | `cart-count` |
+| `/cart` | Page heading | `getByRole('heading', { name: 'Cart', exact: true })` | — |
+| `/cart` | Empty message | `getByTestId('cart-empty')` | `cart-empty` |
+| `/cart` | Cart line | `getByTestId('cart-item')` | `cart-item` |
+| `/cart` | Quantity | `getByTestId('item-quantity')` | `item-quantity` |
+| `/cart` | Line total | `getByTestId('line-total')` | `line-total` |
+| `/cart` | Quantity controls | `getByTestId('increase-quantity')` / `decrease-quantity` | `increase-quantity` / `decrease-quantity` |
+| `/cart` | Remove / clear | `getByTestId('remove-item')` / `clear-cart` | `remove-item` / `clear-cart` |
 | `/cart` | Proceed to checkout | `getByRole('button', { name: 'Proceed to checkout' })` | `proceed-to-checkout` |
 | `/checkout` | Page heading | `getByRole('heading', { name: 'Checkout' })` | — |
-| `/checkout` | Total | `getByText(/Total: \$\d+\.\d{2}/)` | — |
+| `/checkout` | Total | `getByTestId('checkout-total')` | `checkout-total` |
 | `/checkout` | Place order | `getByRole('button', { name: 'Place order' })` | `place-order` |
 | Confirmation | Page heading | `getByRole('heading', { name: 'Order confirmed' })` | — |
-| Confirmation | Thank-you message | `getByText('Thank you for your purchase!')` | — |
+| Confirmation | Thank-you message | `getByTestId('order-confirmation')` | `order-confirmation` |
+| Confirmation | Order number | `getByTestId('order-number')` | `order-number` |
 
-Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
+Note: cart lines show the product name, quantity, and a separate line total. Checkout items render as `Coffee Mug × 1`, with the price in a separate element.
 
 ## Test Scenarios
 
@@ -56,19 +66,20 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
     - expect: The product list shows 'Coffee Mug — $10.00' and 'Logo T-Shirt — $20.00'
     - expect: A 'Cart' navigation link (data-testid=cart-link) is present
   2. Click the 'Add to cart' button (data-testid=add-to-cart) inside the product item (data-testid=product-item) that contains 'Coffee Mug'.
-    - expect: The browser is redirected back to the dashboard (the item is added server-side and the cart now holds one item)
+    - expect: The browser is redirected back to the dashboard and the flash (data-testid=flash) reads 'Coffee Mug added to your cart.'
   3. Click the 'Cart' navigation link (data-testid=cart-link) (or navigate to /cart).
     - expect: The 'Cart' heading (level 1) is visible
-    - expect: A list item reading 'Coffee Mug — $10.00' is displayed
+    - expect: A cart line (data-testid=cart-item) for 'Coffee Mug' shows quantity 1 (data-testid=item-quantity) and a line total of $10.00 (data-testid=line-total)
     - expect: The 'Proceed to checkout' button (data-testid=proceed-to-checkout) is visible
   4. Click the 'Proceed to checkout' button (data-testid=proceed-to-checkout).
     - expect: The 'Checkout' heading (level 1) is visible
-    - expect: The order summary lists 'Coffee Mug — $10.00'
-    - expect: The total reads 'Total: $10.00'
+    - expect: The order summary lists 'Coffee Mug × 1' with a price of $10.00
+    - expect: The total (data-testid=checkout-total) reads 'Total: $10.00'
     - expect: The 'Place order' button (data-testid=place-order) is visible
   5. Click the 'Place order' button (data-testid=place-order).
     - expect: The 'Order confirmed' heading (level 1) is visible
-    - expect: The confirmation message 'Thank you for your purchase!' is displayed
+    - expect: The confirmation message (data-testid=order-confirmation) reads 'Thank you for your purchase!'
+    - expect: An order number (data-testid=order-number) matching `#\d+` is displayed
     - expect: A 'Back to dashboard' link is present
     - expect: The cart is now empty (visiting /cart again shows 'Your cart is empty.')
 
@@ -80,21 +91,21 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
   1. Navigate to the dashboard (GET /). Precondition: authenticated session with an empty cart.
     - expect: The 'Dashboard' heading (level 1) is visible
   2. Click 'Add to cart' (data-testid=add-to-cart) for the 'Coffee Mug' product, then click 'Add to cart' for the 'Logo T-Shirt' product.
-    - expect: After each add, the browser returns to the dashboard and both items are now in the cart
+    - expect: After each add, the browser returns to the dashboard and the flash confirms the product was added
   3. Navigate to /cart.
     - expect: The 'Cart' heading is visible
-    - expect: Both 'Coffee Mug — $10.00' and 'Logo T-Shirt — $20.00' are listed
+    - expect: Two cart lines are shown, with line totals of $10.00 and $20.00
   4. Click the 'Proceed to checkout' button (data-testid=proceed-to-checkout).
     - expect: The 'Checkout' heading is visible
     - expect: Both items are listed in the order summary
-    - expect: The total reads 'Total: $30.00' (10 + 20)
+    - expect: The total (data-testid=checkout-total) reads 'Total: $30.00' (10 + 20)
   5. Click the 'Place order' button (data-testid=place-order).
     - expect: The 'Order confirmed' heading is visible
     - expect: The 'Thank you for your purchase!' message is displayed
 
 ### 2. Login
 
-**Seed:** `tests/seed.spec.ts`
+**Seed:** `firefox-anon` project (no `storageState`)
 
 #### 2.1. login with a wrong password shows an error and does not log in
 
@@ -123,16 +134,23 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
 **Steps:**
   1. Navigate to /cart directly, without adding any items. Precondition: a fresh authenticated session with an empty cart (nothing has been added this session).
     - expect: The 'Cart' heading (level 1) is visible
-    - expect: The 'Your cart is empty.' message is displayed
+    - expect: The empty message (data-testid=cart-empty) reads 'Your cart is empty.'
     - expect: The 'Proceed to checkout' button (data-testid=proceed-to-checkout) is NOT visible
-    - expect: A 'Back to products' link is present
+    - expect: A 'Back to products' link (data-testid=back-link) is present
+
+### 4. Additional coverage (implemented)
+
+The suite also covers:
+
+- `tests/e2e/cart.spec.ts`: duplicate adds merge into one line, quantity increase/decrease updates totals and removes at zero, and clearing empties everything.
+- `tests/api/shop-api.spec.ts`: catalog JSON, login/logout, session cart add/update/remove/clear, checkout, auth redirects, and 405 handling.
 
 ## Assumptions & Notes
 
 - **Fresh state per scenario:** Each scenario assumes a blank/fresh browser state. Playwright isolates every test in its own browser context, and the server keys the cart by the `sid` session cookie, so cart state is independent across tests — scenarios can be run in any order.
 - **Authenticated suites:** The *Checkout Flow* and *Cart State* suites reuse the `storageState` from `tests/auth.setup.ts` (a new session is created per run, so the cart starts empty).
 - **Login suite is unauthenticated:** The *Login* suite must run in a fresh, unauthenticated context (e.g. `browser.newContext()` with no `storageState`). This is required because the default `firefox` project in `playwright.config.ts` applies the stored auth state, which would otherwise redirect `/login` straight to the dashboard.
-- **Add-to-cart is a form POST:** Clicking "Add to cart" posts to `/cart/add` and redirects back to the dashboard; the cart is not updated client-side, so assert on the cart page after navigating to it.
+- **Add-to-cart is a form POST:** Clicking "Add to cart" posts to `/cart/add`, redirects to `/?added=<id>`, and shows a status flash; the cart is not updated client-side, so assert on the cart page after navigating to it. Adding the same product twice merges the lines and increments the quantity.
 - **Checkout clears the cart:** Placing an order empties the cart server-side. Visiting `/cart` afterwards shows the empty state.
 - **Assertions:** Use web-first assertions only (`toBeVisible()`, `toHaveText()`, `not.toBeVisible()`). Do not use `page.waitForTimeout()`, raw CSS/XPath without justification, or `page.evaluate()` for assertions (see `AGENTS.md`).
 

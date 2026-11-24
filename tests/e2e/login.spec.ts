@@ -1,5 +1,5 @@
 // spec: specs/checkout.test.plan.md
-// seed: tests/seed.spec.ts
+// seed: firefox-anon project (no storageState)
 
 import { test, expect } from '@playwright/test';
 
@@ -21,7 +21,7 @@ test.describe('Login', () => {
 
     // 4. Click the 'Sign in' button.
     await page.getByTestId('sign-in').click();
-    await expect(page.getByTestId('login-error')).toHaveText('Invalid email or password.');
+    await expect(page.getByRole('alert')).toHaveText('Invalid email or password.');
     await expect(page).toHaveURL(/\/login/);
     await expect(page.getByRole('heading', { name: 'Dashboard' })).not.toBeVisible();
   });
@@ -41,5 +41,7 @@ test.describe('Login', () => {
     // 4. Verify redirect to dashboard.
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await expect(page).toHaveURL('/');
+    await expect(page.getByTestId('cart-count')).toHaveText('0');
+    await expect(page.getByTestId('product-item')).toHaveCount(2);
   });
 });

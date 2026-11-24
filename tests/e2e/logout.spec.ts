@@ -9,9 +9,10 @@ test.describe('Logout', () => {
     // 2. Click the 'Log out' link.
     await page.getByTestId('logout-link').click();
 
-    // 3. Verify redirect to login page and session is destroyed.
+    // 3. Verify redirect to login page and that authenticated navigation is gone.
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByTestId('cart-link')).not.toBeVisible();
 
     // 4. Attempting to visit a protected page redirects back to login.
     await page.goto('/');
