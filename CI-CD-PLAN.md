@@ -1,7 +1,7 @@
 # CI/CD Plan — Playwright Sample
 
-**Status:** proposal
-**Branch:** `feature/ci-cd-pipeline`
+**Status:** Phase 1 implemented; nightly runs and Pages report adopted early
+**Branch:** `master`
 **Date:** 2026-11-24
 **Scope:** GitHub Actions pipeline for lint, API, and Firefox E2E tests, reporting, and delivery of test artifacts.
 
@@ -186,7 +186,7 @@ PR / push / merge_group / manual
 
 | Artifact | Contents | Retention |
 | --- | --- | --- |
-| `playwright-report-<attempt>` | HTML report | 14 days |
+| `playwright-report` | HTML report (overwritten on re-run) | 14 days |
 | `test-results-<attempt>` | Traces, screenshots, videos | 7 days |
 | `blob-report-<shard>-<attempt>` | Blob report per shard | 3 days |
 
@@ -327,6 +327,8 @@ The local repo currently has **no remote** and the default branch is **`master`*
 
 Adopt when E2E p95 > 5 minutes or the suite exceeds ~100 tests.
 
+> **Adopted early:** the nightly schedule (step 5) and Pages report publishing (step 6) are already live. Sharding, blob merging, and the aggregator remain gated on the metrics above.
+
 1. Switch the CI reporter to `blob`:
    ```ts
    reporter: isCI ? [['blob']] : [['html', { open: 'never' }], ['list']],
@@ -433,8 +435,9 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-report
           path: playwright-report/
+          overwrite: true
           retention-days: 14
       - name: Upload failure artifacts
         if: ${{ !cancelled() }}
@@ -503,8 +506,9 @@ Replace the `e2e` job with a matrix and add `merge-reports`:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-report
           path: playwright-report/
+          overwrite: true
           retention-days: 14
 ```
 
@@ -528,7 +532,7 @@ Requires **Settings → Pages → Source: GitHub Actions**. On private repositor
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-report
           path: playwright-report
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
