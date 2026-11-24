@@ -1,0 +1,42 @@
+# CodeQL security analysis (Phase 3, optional item).
+# Standard default setup: init -> autobuild -> analyze, js-ts extractor.
+#
+# github/codeql-action is intentionally pinned to the MAJOR tag (@v4), not a
+# commit SHA: the action's server-side analysis flags change in ways that can
+# break stale commit pins, so the official README recommends tracking the
+# major version. Dependabot (.github/dependabot.yml, github-actions ecosystem)
+# bumps the tag; see CI-CD-PLAN.md, Phase 3 "Security (optional)".
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '30 1 * * 1' # Weekly, Mondays
+
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
+jobs:
+  codeql:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: js-ts
+            queries: security-and-quality
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: ${{ matrix.queries }}
+      - uses: github/codeql-action/autobuild@v4
+      - uses: github/codeql-action/analyze@v4
