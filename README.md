@@ -36,7 +36,8 @@ tests/
 specs/                   # markdown test plans produced by the planner agent
 opencode.json            # project opencode config: MCP server + 3 agent definitions
 AGENTS.md                # conventions the AI agents follow
-.github/workflows/       # CI pipeline (GitHub Actions)
+.github/workflows/       # CI: lint, API, and Firefox E2E jobs
+.github/dependabot.yml   # weekly npm + GitHub Actions updates
 ```
 
 Projects in `playwright.config.ts`: `setup` (auth) → `api` (request-only, no browser), `firefox` (authenticated, `storageState`) and `firefox-anon` (no `storageState`, runs the anonymous specs: `login.spec.ts`, `auth-guard.spec.ts`, `navigation.spec.ts`).
@@ -53,12 +54,31 @@ npm run report    # open the HTML report
 Mock app credentials: `test@example.com` / `password123`
 Run the mock app standalone: `npm run start:mock`
 
+## CI
+
+GitHub Actions runs three parallel jobs on every pull request and on pushes to `master` (`.github/workflows/playwright.yml`):
+
+| Job | What it runs |
+|-----|--------------|
+| Lint, format & types | `npm run format:check`, `npm run lint`, `npx tsc --noEmit` |
+| API tests | `npx playwright test --project=api` (request-only, no browser) |
+| E2E tests (Firefox) | installs Firefox, runs the `firefox` and `firefox-anon` projects |
+
+Every run uploads `playwright-report-<attempt>` (HTML report, 14 days) and `test-results-<attempt>` (traces, screenshots, videos, 7 days). Download them from the run's **Artifacts** section, then open the report locally:
+
+```bash
+npx playwright show-report <extracted-folder>
+```
+
+Failed tests also appear as annotations on the pull request. CI uses one worker for stability and retries twice; set `PLAYWRIGHT_TEST_BASE_URL` to run the same suite against an external deployment (the local mock server is skipped).
+
 ## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PORT` | Port for the mock server | `3000` |
-| `CI` | Set by CI runners; enables retries and fixed worker count | _(unset)_ |
+| `CI` | Set by CI runners; enables retries, one worker, and a 30s test timeout | _(unset)_ |
+| `PLAYWRIGHT_TEST_BASE_URL` | Run against an external deployment instead of starting the local mock app | `http://localhost:3000` |
 
 ## Day-to-day AI workflow
 
@@ -121,7 +141,7 @@ Run tagged subsets: `npx playwright test --grep @smoke`
 |---------|----------|
 | `EADDRINUSE: address already in use :::3000` | A previous server instance is still running. Kill it: `npx kill-port 3000` or `taskkill /F /IM node.exe` on Windows. |
 | `browserType.launch: Executable doesn't exist` | Run `npx playwright install firefox` to download the browser. |
-| Tests pass locally but fail in CI | Check that `CI=true` is set (GitHub Actions sets it automatically). The config enables retries and fixed workers in CI. |
+| Tests pass locally but fail in CI | Check that `CI=true` is set (GitHub Actions sets it automatically). The config enables retries, a single worker, and a 30s test timeout in CI. |
 | Shared cart state between tests | Use `authenticatedPage` from `tests/fixtures.ts` to mint a fresh session per test. |
 
 ## Conventions

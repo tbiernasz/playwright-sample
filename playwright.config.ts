@@ -1,25 +1,33 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+const externalBaseURL = process.env.PLAYWRIGHT_TEST_BASE_URL;
+
 /** E2E specs that must run in a fresh, unauthenticated context. */
 const anonymousSpecs = [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/];
 
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 4 : undefined,
-  timeout: 15_000,
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  // One worker per CI job; scale with shards instead of oversubscribing the runner.
+  workers: isCI ? 1 : undefined,
+  // Playwright stops the run itself, so reporters still write a report.
+  globalTimeout: 15 * 60_000,
+  timeout: isCI ? 30_000 : 15_000,
   expect: { timeout: 3_000 },
-  reporter: [['html'], ['list']],
-  webServer: {
-    command: 'node app/server.js',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-  },
+  reporter: isCI ? [['github'], ['html', { open: 'never' }]] : [['html', { open: 'never' }], ['list']],
+  webServer: externalBaseURL
+    ? undefined
+    : {
+        command: 'node app/server.js',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !isCI,
+      },
   use: {
     ...devices['Desktop Firefox'],
-    baseURL: 'http://localhost:3000',
+    baseURL: externalBaseURL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
