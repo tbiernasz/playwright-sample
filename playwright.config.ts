@@ -16,6 +16,17 @@ const quarantineOnly = process.env.PLAYWRIGHT_QUARANTINE === '1';
  */
 const flakyFilter = isCI ? (quarantineOnly ? { grep: /@flaky/ } : { grepInvert: /@flaky/ }) : {};
 
+// Smoke mode (set by the post-deploy workflow): run only @smoke tests.
+// See CI-CD-PLAN.md, Phase 3 "Post-deploy smoke".
+const smokeOnly = process.env.PLAYWRIGHT_SMOKE === '1';
+
+/**
+ * Per-project filter for post-deploy smoke runs: only `@smoke` tests, in CI.
+ * `setup` intentionally has no filter: if a dependency project has zero matching
+ * tests, Playwright would skip its dependents. Local runs stay unfiltered.
+ */
+const smokeFilter = isCI && smokeOnly ? { grep: /@smoke/ } : {};
+
 /** E2E specs that must run in a fresh, unauthenticated context. */
 const anonymousSpecs = [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/];
 
@@ -59,7 +70,7 @@ export default defineConfig({
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
     // Request-only specs: no browser and no stored auth state.
-    { name: 'api', testDir: './tests/api', ...flakyFilter },
+    { name: 'api', testDir: './tests/api', ...flakyFilter, ...smokeFilter },
     {
       name: 'firefox',
       testDir: './tests/e2e',
@@ -67,6 +78,7 @@ export default defineConfig({
       use: { storageState: 'tests/.auth/user.json' },
       dependencies: ['setup'],
       ...flakyFilter,
+      ...smokeFilter,
     },
     {
       name: 'firefox-anon',
@@ -74,6 +86,7 @@ export default defineConfig({
       testMatch: anonymousSpecs,
       dependencies: ['setup'],
       ...flakyFilter,
+      ...smokeFilter,
     },
   ],
 });
