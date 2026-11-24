@@ -51,13 +51,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Full history so --only-changed can diff against the PR base ref.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps firefox
+      # Fail-fast heuristic: run only what this PR changed, so a broken changed
+      # test fails the job before the full suite starts. Never the only run —
+      # the full suite always follows (it also covers source-code changes that
+      # --only-changed cannot map to tests).
+      - name: 'Fail-fast: tests changed in this PR'
+        if: ${{ github.event_name == 'pull_request' }}
+        run: npx playwright test --only-changed=origin/${{ github.base_ref }} --pass-with-no-tests
       - run: npx playwright test --project=firefox --project=firefox-anon
       - name: Upload HTML report
         if: ${{ !cancelled() }}
