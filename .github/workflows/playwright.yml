@@ -6,6 +6,8 @@ on:
   pull_request:
   merge_group:
   workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
 
 permissions:
   contents: read
@@ -28,7 +30,7 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
-      - run: npx tsc --noEmit
+      - run: npm run typecheck
 
   api:
     name: API tests
@@ -72,3 +74,32 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  pages:
+    name: Publish report
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: playwright-report-${{ github.run_attempt }}
+          path: playwright-report
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: playwright-report
+      - id: deployment
+        uses: actions/deploy-pages@v5

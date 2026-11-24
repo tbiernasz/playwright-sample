@@ -1,5 +1,7 @@
 # Playwright + AI Test Automation Sample
 
+[![CI](https://github.com/tbiernasz/playwright-sample/actions/workflows/playwright.yml/badge.svg)](https://github.com/tbiernasz/playwright-sample/actions/workflows/playwright.yml)
+
 Playwright (TypeScript) project wired into [opencode](https://opencode.ai) using Playwright's built-in AI test agents (**planner → generator → healer**) and a local LLM (llama.cpp).
 
 ## Prerequisites
@@ -56,11 +58,11 @@ Run the mock app standalone: `npm run start:mock`
 
 ## CI
 
-GitHub Actions runs three parallel jobs on every pull request and on pushes to `master` (`.github/workflows/playwright.yml`):
+GitHub Actions runs three parallel jobs on every pull request, on pushes to `master`, and nightly at 03:00 UTC (`.github/workflows/playwright.yml`):
 
 | Job | What it runs |
 |-----|--------------|
-| Lint, format & types | `npm run format:check`, `npm run lint`, `npx tsc --noEmit` |
+| Lint, format & types | `npm run format:check`, `npm run lint`, `npm run typecheck` |
 | API tests | `npx playwright test --project=api` (request-only, no browser) |
 | E2E tests (Firefox) | installs Firefox, runs the `firefox` and `firefox-anon` projects |
 
@@ -71,6 +73,8 @@ npx playwright show-report <extracted-folder>
 ```
 
 Failed tests also appear as annotations on the pull request. CI uses one worker for stability and retries twice; set `PLAYWRIGHT_TEST_BASE_URL` to run the same suite against an external deployment (the local mock server is skipped).
+
+On `master`, the HTML report is also published to GitHub Pages: <https://tbiernasz.github.io/playwright-sample/>. This requires **Settings → Pages → Source: GitHub Actions** to be set once in the repository.
 
 ## Environment Variables
 
@@ -109,6 +113,7 @@ npx playwright init-agents --loop=opencode
 | Show trace of a failure | `npx playwright show-trace <trace.zip>` |
 | Tag filtering | add `@smoke` / `@regression` to test titles, run with `--grep` |
 | CI sharding | `npx playwright test --shard=1/4` |
+| Type-check | `npm run typecheck` |
 | Lint tests | `npm run lint` |
 | Format code | `npm run format` |
 

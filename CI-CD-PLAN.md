@@ -1,7 +1,7 @@
 # CI/CD Plan — Playwright Sample
 
-**Status:** proposal
-**Branch:** `feature/ci-cd-pipeline`
+**Status:** Phase 1 implemented; nightly runs and Pages report adopted early
+**Branch:** `master`
 **Date:** 2026-11-24
 **Scope:** GitHub Actions pipeline for lint, API, and Firefox E2E tests, reporting, and delivery of test artifacts.
 
@@ -326,6 +326,8 @@ The local repo currently has **no remote** and the default branch is **`master`*
 ### Phase 2 — Scale and reporting (only when triggered)
 
 Adopt when E2E p95 > 5 minutes or the suite exceeds ~100 tests.
+
+> **Adopted early:** the nightly schedule (step 5) and Pages report publishing (step 6) are already live. Sharding, blob merging, and the aggregator remain gated on the metrics above.
 
 1. Switch the CI reporter to `blob`:
    ```ts
