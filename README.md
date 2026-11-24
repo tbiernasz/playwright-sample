@@ -21,17 +21,18 @@ Playwright (TypeScript) project wired into [opencode](https://opencode.ai) using
 ## Layout
 
 ```
-app/server.js            # mock shop: login -> dashboard -> cart -> checkout (port 3000)
+app/server.js            # mock shop: login -> dashboard -> cart (quantities) -> checkout, JSON API (port 3000)
 tests/
   fixtures.ts            # shared Playwright fixtures (authenticatedPage)
   auth.setup.ts          # login once, saves storageState to tests/.auth/user.json
   api/
     shop-api.spec.ts     # request-level API tests (no browser)
   e2e/
-    smoke.spec.ts        # smoke test (dashboard loads)
-    checkout.spec.ts     # full checkout flow + multi-item total
-    cart.spec.ts         # empty-cart state
-    login.spec.ts        # failed login + successful login (runs unauthenticated)
+    helpers.ts           # addToCart helper (adds a product, waits for the flash)
+    smoke.spec.ts        # dashboard, product cards, navigation
+    checkout.spec.ts     # checkout flow, multi-item total, empty checkout
+    cart.spec.ts         # empty state, duplicate adds, quantity controls, clear cart
+    login.spec.ts        # failed + successful login (runs unauthenticated)
     logout.spec.ts       # logout flow
     auth-guard.spec.ts   # unauthenticated access redirects to login
     navigation.spec.ts   # 404 page
@@ -55,6 +56,8 @@ npm run report    # open the HTML report
 
 Mock app credentials: `test@example.com` / `password123`
 Run the mock app standalone: `npm run start:mock`
+
+The shop has a dark, responsive UI with product cards, flash messages, a cart badge, and quantity controls. Carts are stored per session; request-level tests can use `GET /api/products` and `GET /api/cart` (authenticated).
 
 ## CI
 
