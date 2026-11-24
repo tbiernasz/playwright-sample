@@ -186,7 +186,7 @@ PR / push / merge_group / manual
 
 | Artifact | Contents | Retention |
 | --- | --- | --- |
-| `playwright-report-<attempt>` | HTML report | 14 days |
+| `playwright-report` | HTML report (overwritten on re-run) | 14 days |
 | `test-results-<attempt>` | Traces, screenshots, videos | 7 days |
 | `blob-report-<shard>-<attempt>` | Blob report per shard | 3 days |
 
@@ -435,8 +435,9 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-report
           path: playwright-report/
+          overwrite: true
           retention-days: 14
       - name: Upload failure artifacts
         if: ${{ !cancelled() }}
@@ -505,8 +506,9 @@ Replace the `e2e` job with a matrix and add `merge-reports`:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-report
           path: playwright-report/
+          overwrite: true
           retention-days: 14
 ```
 
@@ -530,7 +532,7 @@ Requires **Settings → Pages → Source: GitHub Actions**. On private repositor
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-report
           path: playwright-report
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

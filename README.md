@@ -66,7 +66,7 @@ GitHub Actions runs three parallel jobs on every pull request, on pushes to `mas
 | API tests | `npx playwright test --project=api` (request-only, no browser) |
 | E2E tests (Firefox) | installs Firefox, runs the `firefox` and `firefox-anon` projects |
 
-Every run uploads `playwright-report-<attempt>` (HTML report, 14 days) and `test-results-<attempt>` (traces, screenshots, videos, 7 days). Download them from the run's **Artifacts** section, then open the report locally:
+Every run uploads `playwright-report` (HTML report, overwritten on re-run, 14 days) and `test-results-<attempt>` (traces, screenshots, videos, 7 days). Download them from the run's **Artifacts** section, then open the report locally:
 
 ```bash
 npx playwright show-report <extracted-folder>
