@@ -379,6 +379,30 @@ Flaky tests are quarantined instead of being retried into invisibility:
 
 > **Status (Nov 2026):** zero tests are quarantined. This is the mechanism — tag a test the moment it starts flaking on CI.
 
+#### Monthly cost review checklist
+
+Run once a month (e.g. first Monday). Takes ~15 minutes.
+
+1. **Runner minutes** — GitHub → repo → **Insights → Usage → Actions**.
+   - Compare this month's minutes against last month and against the free tier (2,000 min/month for public repos; private repos pay).
+   - Spot-check the top consumers: is the nightly schedule or a `pages` re-deploy dominating?
+   - If minutes grow >2× month over month, find which job got slower (longer `timeout-minutes` drift, more retries, bigger artifact downloads).
+2. **Artifact retention** — check the `retention-days` values in the workflows:
+   - `e2e-results-*` and `e2e-flaky-results-*` (playwright.yml): keep ≤ 14 days.
+   - `playwright-report` (pages job): keep ≤ 90 days unless a report is being archived for a release.
+   - Older artifacts are deleted automatically; lower the value if nobody opens them.
+3. **Shard / worker count** — `workers: 1` per CI job is the baseline.
+   - Only add `--shard=i/n` when a job exceeds ~10 min wall time.
+   - Each shard is a full runner; doubling shards doubles minutes for that job.
+4. **Retries** — `retries: 2` in CI is intentional (flakes). If a test retries constantly, it's a bug, not a cost: fix it or quarantine it with `@flaky` (see the flake tracking policy above).
+5. **Write the result** — one line in this file under [Cost log](#cost-log): date, minutes, notable change, action taken.
+
+### Cost log
+
+| Month | Minutes | Notes |
+| ----- | ------- | ----- |
+| _first entry here_ | | |
+
 ---
 
 ## 6. Reference workflows
