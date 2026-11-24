@@ -14,6 +14,20 @@ tests/.auth/
 # Playwright MCP server artifacts (console logs, page snapshots)
 .playwright-mcp/
 
+# Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
 # OS
 Thumbs.db
 .DS_Store
+
+# Logs
+*.log

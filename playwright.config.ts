@@ -6,6 +6,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : undefined,
+  timeout: 15_000,
+  expect: { timeout: 3_000 },
   reporter: [['html'], ['list']],
   webServer: {
     command: 'node app/server.js',
@@ -22,7 +24,7 @@ export default defineConfig({
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
     {
       name: 'chromium',
-      testIgnore: /login\.spec\.ts/,
+      testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'tests/.auth/user.json',
@@ -31,8 +33,27 @@ export default defineConfig({
     },
     {
       name: 'chromium-anon',
-      testMatch: /login\.spec\.ts/,
+      testMatch: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/],
       use: { ...devices['Desktop Chrome'] },
     },
+    // Uncomment to run cross-browser:
+    // {
+    //   name: 'firefox',
+    //   testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
+    //   use: {
+    //     ...devices['Desktop Firefox'],
+    //     storageState: 'tests/.auth/user.json',
+    //   },
+    //   dependencies: ['setup'],
+    // },
+    // {
+    //   name: 'webkit',
+    //   testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
+    //   use: {
+    //     ...devices['Desktop Safari'],
+    //     storageState: 'tests/.auth/user.json',
+    //   },
+    //   dependencies: ['setup'],
+    // },
   ],
 });

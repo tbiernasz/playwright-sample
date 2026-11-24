@@ -103,7 +103,7 @@ function dashboardPage(sid) {
     `<h1>Dashboard</h1>
 <nav>
   <a href="/cart" data-testid="cart-link">Cart</a>
-  <a href="/logout">Log out</a>
+  <a href="/logout" data-testid="logout-link">Log out</a>
 </nav>
 <h2>Products</h2>
 <ul>${items}
@@ -115,27 +115,27 @@ function cartPage(sid) {
   const cart = carts.get(sid) || [];
   const body =
     cart.length === 0
-      ? `<p>Your cart is empty.</p><a href="/">Back to products</a>`
+      ? `<p data-testid="cart-empty">Your cart is empty.</p><a href="/" data-testid="back-link">Back to products</a>`
       : `<ul>${cart
-          .map((item) => `<li>${item.name} &mdash; $${item.price.toFixed(2)}</li>`)
+          .map((item) => `<li data-testid="cart-item">${item.name} &mdash; $${item.price.toFixed(2)}</li>`)
           .join('')}</ul>
 <form method="post" action="/checkout/goto">
   <button type="submit" data-testid="proceed-to-checkout">Proceed to checkout</button>
 </form>`;
-  return htmlPage('Cart', `<h1>Cart</h1>${body}<p><a href="/">Back to products</a></p>`);
+  return htmlPage('Cart', `<h1>Cart</h1>${body}<p><a href="/" data-testid="back-link">Back to products</a></p>`);
 }
 
 function checkoutPage(sid) {
   const cart = carts.get(sid) || [];
   if (cart.length === 0) {
-    return htmlPage('Checkout', `<h1>Checkout</h1><p>Your cart is empty.</p>`);
+    return htmlPage('Checkout', `<h1>Checkout</h1><p data-testid="cart-empty">Your cart is empty.</p>`);
   }
   const total = cart.reduce((sum, item) => sum + item.price, 0);
   return htmlPage(
     'Checkout',
     `<h1>Checkout</h1>
-<ul>${cart.map((item) => `<li>${item.name} &mdash; $${item.price.toFixed(2)}</li>`).join('')}</ul>
-<p>Total: $${total.toFixed(2)}</p>
+<ul>${cart.map((item) => `<li data-testid="checkout-item">${item.name} &mdash; $${item.price.toFixed(2)}</li>`).join('')}</ul>
+<p data-testid="checkout-total">Total: $${total.toFixed(2)}</p>
 <form method="post" action="/checkout">
   <button type="submit" data-testid="place-order">Place order</button>
 </form>`
@@ -143,7 +143,7 @@ function checkoutPage(sid) {
 }
 
 function confirmationPage() {
-  return htmlPage('Order confirmed', `<h1>Order confirmed</h1><p>Thank you for your purchase!</p><a href="/">Back to dashboard</a>`);
+  return htmlPage('Order confirmed', `<h1>Order confirmed</h1><p data-testid="order-confirmation">Thank you for your purchase!</p><a href="/" data-testid="back-link">Back to dashboard</a>`);
 }
 
 // ---------------------------------------------------------------------------
@@ -203,7 +203,7 @@ const server = http.createServer(async (req, res) => {
           const product = PRODUCTS.find((p) => p.id === body.get('productId'));
           if (product) {
             const cart = carts.get(sid) || [];
-            cart.push(product);
+            cart.push({ ...product });
             carts.set(sid, cart);
           }
           return redirect(res, '/');
@@ -238,3 +238,16 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Mock app listening on http://localhost:${PORT}`);
 });
+
+// ---------------------------------------------------------------------------
+// Graceful shutdown
+// ---------------------------------------------------------------------------
+function shutdown() {
+  console.log('Shutting down…');
+  server.close(() => process.exit(0));
+  // Force exit after 3 seconds if connections hang
+  setTimeout(() => process.exit(1), 3000).unref();
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
