@@ -230,7 +230,7 @@ expect: { timeout: 3_000 },
 
 ### 4.2 Single-browser matrix
 
-The project tests against `Desktop Firefox` only. For a sample/reference project, adding a second browser project (even if commented out) would demonstrate cross-browser testing.
+The project intentionally runs against `Desktop Firefox` only; additional browser projects are out of scope unless cross-browser coverage becomes a requirement.
 
 ### 4.3 `package.json` — `"main": "index.js"` is misleading
 
