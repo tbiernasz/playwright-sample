@@ -62,15 +62,44 @@ test.describe('Cart', () => {
     await expect(page.getByTestId('cart-count')).toHaveText('0');
   });
 
-  test('clear cart removes every item', async ({ authenticatedPage: page }) => {
+  test('clear cart removes every item after confirmation', async ({ authenticatedPage: page }) => {
+    // 1. Seed two lines, then open the cart.
     await page.goto('/');
     await addToCart(page, 'Coffee Mug');
     await addToCart(page, 'Logo T-Shirt');
     await page.getByTestId('cart-link').click();
     await expect(page.getByTestId('cart-item')).toHaveCount(2);
 
+    // 2. "Clear cart" opens the confirmation modal instead of acting immediately.
     await page.getByTestId('clear-cart').click();
+    const modal = page.getByTestId('clear-cart-modal');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Clear your cart?' })).toBeVisible();
+    await expect(modal).toContainText('This removes all 2 items');
+
+    // 3. Confirming clears the cart and navigates away from the dialog.
+    await modal.getByTestId('confirm-clear').click();
     await expect(page.getByTestId('cart-empty')).toHaveText('Your cart is empty.');
     await expect(page.getByTestId('cart-count')).toHaveText('0');
+  });
+
+  test('cancel on the clear-cart dialog keeps every item', async ({ authenticatedPage: page }) => {
+    await page.goto('/');
+    await addToCart(page, 'Coffee Mug');
+    await addToCart(page, 'Logo T-Shirt');
+    await page.getByTestId('cart-link').click();
+    await expect(page.getByTestId('cart-item')).toHaveCount(2);
+
+    // 1. Open the dialog, then cancel it.
+    await page.getByTestId('clear-cart').click();
+    const modal = page.getByTestId('clear-cart-modal');
+    await expect(modal).toBeVisible();
+    await modal.getByTestId('cancel-clear').click();
+
+    // 2. No page navigation happened and nothing was removed (the # fragment from the cancel link stays).
+    await expect(page).toHaveURL(/\/cart/);
+    await expect(modal).toBeHidden();
+    await expect(page.getByTestId('cart-item')).toHaveCount(2);
+    await expect(page.getByTestId('cart-count')).toHaveText('2');
   });
 });

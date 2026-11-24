@@ -141,7 +141,7 @@ const STYLES = `
     color: #0b0f17;
     font-weight: 900;
   }
-  nav { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+  nav { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; position: relative; }
   nav a {
     padding: 0.45rem 0.75rem;
     border-radius: 999px;
@@ -153,6 +153,19 @@ const STYLES = `
     color: var(--text);
     text-decoration: none;
   }
+  .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+  .nav-toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .nav-toggle-label { display: none; }
   .badge {
     display: inline-flex;
     align-items: center;
@@ -231,6 +244,7 @@ const STYLES = `
     margin-top: auto;
     padding-top: 0.5rem;
   }
+  .product-actions { display: flex; align-items: center; gap: 0.4rem; }
   .price { font-size: 1.25rem; font-weight: 800; }
   .btn {
     display: inline-flex;
@@ -264,6 +278,64 @@ const STYLES = `
     border-color: var(--border);
     color: var(--text);
   }
+  .btn-danger {
+    background: rgba(255, 123, 114, 0.14);
+    border-color: rgba(255, 123, 114, 0.45);
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: rgba(255, 123, 114, 0.24); color: var(--danger); }
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(4, 8, 16, 0.66);
+    backdrop-filter: blur(3px);
+  }
+  .modal:target { display: flex; }
+  .modal-panel {
+    width: min(26rem, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.4rem;
+  }
+  .modal-head { display: flex; align-items: center; gap: 0.6rem; }
+  .modal-head h2 { flex: 1; margin: 0; font-size: 1.2rem; }
+  .modal-close {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .modal-close:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+  .modal-art {
+    display: grid;
+    place-items: center;
+    height: 5.5rem;
+    margin: 1rem 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    font-size: 2.6rem;
+    background: radial-gradient(circle at 30% 20%, rgba(122, 162, 255, 0.22), transparent 55%), var(--surface-2);
+  }
+  .modal-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.1rem;
+  }
+  .modal-actions form { margin: 0; }
   .flash {
     display: flex;
     align-items: center;
@@ -402,6 +474,72 @@ const STYLES = `
     .site-header { align-items: flex-start; flex-direction: column; }
     .cart-item { grid-template-columns: auto 1fr; }
     .cart-line-total { grid-column: 2; text-align: left; }
+    nav { width: 100%; justify-content: flex-end; }
+    .nav-toggle-label {
+      display: inline-grid;
+      place-items: center;
+      width: 2.4rem;
+      height: 2.4rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-2);
+      cursor: pointer;
+    }
+    .nav-toggle-icon,
+    .nav-toggle-icon::before,
+    .nav-toggle-icon::after {
+      transition: transform 0.18s ease, top 0.18s ease, background-color 0.18s ease;
+    }
+    .nav-toggle-icon {
+      position: relative;
+      width: 1.05rem;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--text);
+    }
+    .nav-toggle-icon::before,
+    .nav-toggle-icon::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--text);
+    }
+    .nav-toggle-icon::before { top: -6px; }
+    .nav-toggle-icon::after { top: 6px; }
+    .nav-toggle:checked + .nav-toggle-label .nav-toggle-icon { background: transparent; }
+    .nav-toggle:checked + .nav-toggle-label .nav-toggle-icon::before {
+      top: 0;
+      transform: rotate(45deg);
+    }
+    .nav-toggle:checked + .nav-toggle-label .nav-toggle-icon::after {
+      top: 0;
+      transform: rotate(-45deg);
+    }
+    .nav-toggle:focus-visible ~ .nav-toggle-label {
+      outline: 2px solid rgba(122, 162, 255, 0.5);
+      outline-offset: 1px;
+    }
+    .nav-links {
+      position: absolute;
+      top: calc(100% + 0.4rem);
+      right: 0;
+      z-index: 30;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.2rem;
+      min-width: 12rem;
+      padding: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .nav-toggle:checked ~ .nav-links { display: flex; }
+    .nav-links a { padding: 0.55rem 0.75rem; border-radius: 10px; }
   }
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
@@ -412,10 +550,16 @@ function htmlPage(title, body, { sid = null, active = '' } = {}) {
   const count = sid ? cartCount(sid) : 0;
   const nav = sid
     ? `<nav aria-label="Main navigation">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Toggle menu">
+      <label for="nav-toggle" class="nav-toggle-label" data-testid="nav-toggle">
+        <span class="nav-toggle-icon" aria-hidden="true"></span>
+      </label>
+      <div class="nav-links" data-testid="nav-links">
         <a href="/" data-testid="home-link"${active === 'home' ? ' aria-current="page"' : ''}>Shop</a>
         <a href="/cart" data-testid="cart-link"${active === 'cart' ? ' aria-current="page"' : ''}>Cart <span class="badge" data-testid="cart-count">${count}</span></a>
         <a href="/logout" data-testid="logout-link">Log out</a>
-      </nav>`
+      </div>
+    </nav>`
     : `<nav aria-label="Main navigation"><span class="muted">Demo store</span></nav>`;
 
   return `<!doctype html>
@@ -531,16 +675,40 @@ ${flash}
           <p class="muted">${product.description}</p>
           <div class="product-footer">
             <span class="price" data-testid="product-price">${money(product.price)}</span>
-            <form method="post" action="/cart/add">
-              <input type="hidden" name="productId" value="${product.id}">
-              <button class="btn btn-primary" type="submit" data-testid="add-to-cart">Add to cart</button>
-            </form>
+            <div class="product-actions">
+              <a class="btn btn-ghost btn-small" href="#product-${product.id}" data-testid="product-details">Details</a>
+              <form method="post" action="/cart/add">
+                <input type="hidden" name="productId" value="${product.id}">
+                <button class="btn btn-primary btn-small" type="submit" data-testid="add-to-cart">Add to cart</button>
+              </form>
+            </div>
           </div>
         </div>
       </article>`
     ).join('')}
   </div>
-</section>`,
+</section>
+${PRODUCTS.map(
+  (product) => `
+  <div class="modal" id="product-${product.id}" data-testid="product-modal-${product.id}">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="product-${product.id}-title">
+      <div class="modal-head">
+        <span class="badge badge-soft">${product.tag}</span>
+        <h2 id="product-${product.id}-title">${product.name}</h2>
+        <a class="modal-close" href="#" data-testid="modal-close" aria-label="Close product details">✕</a>
+      </div>
+      <div class="modal-art" aria-hidden="true">${product.emoji}</div>
+      <p class="muted">${product.description}</p>
+      <div class="modal-foot">
+        <span class="price" data-testid="product-price">${money(product.price)}</span>
+        <form method="post" action="/cart/add">
+          <input type="hidden" name="productId" value="${product.id}">
+          <button class="btn btn-primary" type="submit" data-testid="modal-add-to-cart">Add to cart</button>
+        </form>
+      </div>
+    </div>
+  </div>`
+).join('')}`,
     { sid, active: 'home' }
   );
 }
@@ -613,11 +781,24 @@ function cartPage(sid) {
     <form method="post" action="/checkout/goto">
       <button class="btn btn-primary btn-block" type="submit" data-testid="proceed-to-checkout">Proceed to checkout</button>
     </form>
-    <form method="post" action="/cart/clear">
-      <button class="btn btn-ghost btn-block" type="submit" data-testid="clear-cart">Clear cart</button>
-    </form>
+    <a class="btn btn-ghost btn-block" href="#confirm-clear" data-testid="clear-cart">Clear cart</a>
     <a href="/" data-testid="back-link">Continue shopping</a>
   </aside>
+</div>
+<div class="modal" id="confirm-clear" data-testid="clear-cart-modal">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="confirm-clear-title">
+    <div class="modal-head">
+      <h2 id="confirm-clear-title">Clear your cart?</h2>
+      <a class="modal-close" href="#" data-testid="modal-close" aria-label="Close dialog">✕</a>
+    </div>
+    <p class="muted">This removes all ${itemLabel} from your cart. This cannot be undone.</p>
+    <div class="modal-actions">
+      <a class="btn btn-ghost" href="#" data-testid="cancel-clear">Cancel</a>
+      <form method="post" action="/cart/clear">
+        <button class="btn btn-danger" type="submit" data-testid="confirm-clear">Clear cart</button>
+      </form>
+    </div>
+  </div>
 </div>`;
 
   return htmlPage(
@@ -635,6 +816,8 @@ ${body}`,
 function checkoutPage(sid) {
   const items = cartItems(sid);
   const total = cartSubtotal(items);
+  const count = cartCount(sid);
+  const itemLabel = count === 1 ? '1 item' : `${count} items`;
 
   const body =
     items.length === 0
@@ -656,9 +839,7 @@ function checkoutPage(sid) {
         .join('')}
     </ul>
     <div class="summary-row total"><span>Total</span><strong data-testid="checkout-total">Total: ${money(total)}</strong></div>
-    <form method="post" action="/checkout">
-      <button class="btn btn-primary btn-block" type="submit" data-testid="place-order">Place order</button>
-    </form>
+    <a class="btn btn-primary btn-block" href="#confirm-order" data-testid="place-order">Place order</a>
     <a href="/cart" data-testid="back-link">Back to cart</a>
   </section>
   <aside class="info-card">
@@ -666,6 +847,21 @@ function checkoutPage(sid) {
     <h2>No payment required</h2>
     <p class="muted">This is a sample store. Placing an order clears the in-memory cart and shows a confirmation.</p>
   </aside>
+</div>
+<div class="modal" id="confirm-order" data-testid="confirm-order-modal">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="confirm-order-title">
+    <div class="modal-head">
+      <h2 id="confirm-order-title">Confirm your order</h2>
+      <a class="modal-close" href="#" data-testid="modal-close" aria-label="Close dialog">✕</a>
+    </div>
+    <p class="muted">You are ordering ${itemLabel} for a total of <strong data-testid="confirm-order-total">${money(total)}</strong>.</p>
+    <div class="modal-actions">
+      <a class="btn btn-ghost" href="#" data-testid="cancel-order">Cancel</a>
+      <form method="post" action="/checkout">
+        <button class="btn btn-primary" type="submit" data-testid="confirm-order">Place order</button>
+      </form>
+    </div>
+  </div>
 </div>`;
 
   return htmlPage(

@@ -35,8 +35,15 @@ test.describe('Checkout Flow', () => {
     await expect(page.getByTestId('checkout-total')).toHaveText('Total: $10.00');
     await expect(page.getByTestId('place-order')).toBeVisible();
 
-    // 5. Place the order and verify confirmation plus an empty cart.
+    // 5. "Place order" opens the confirmation modal showing the total.
     await page.getByTestId('place-order').click();
+    const modal = page.getByTestId('confirm-order-modal');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Confirm your order' })).toBeVisible();
+    await expect(modal.getByTestId('confirm-order-total')).toHaveText('$10.00');
+
+    // 6. Confirm the order and verify confirmation plus an empty cart.
+    await modal.getByTestId('confirm-order').click();
     await expect(page.getByRole('heading', { name: 'Order confirmed' })).toBeVisible();
     await expect(page.getByTestId('order-confirmation')).toHaveText('Thank you for your purchase!');
     await expect(page.getByTestId('order-number')).toHaveText(/^#\d+$/);
@@ -72,10 +79,36 @@ test.describe('Checkout Flow', () => {
     await expect(page.getByTestId('checkout-item').filter({ hasText: 'Logo T-Shirt' })).toBeVisible();
     await expect(page.getByTestId('checkout-total')).toHaveText('Total: $30.00');
 
-    // 5. Place the order.
+    // 5. Confirm the order from the modal; the total shown matches the summary.
     await page.getByTestId('place-order').click();
+    const modal = page.getByTestId('confirm-order-modal');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByTestId('confirm-order-total')).toHaveText('$30.00');
+    await modal.getByTestId('confirm-order').click();
     await expect(page.getByRole('heading', { name: 'Order confirmed' })).toBeVisible();
     await expect(page.getByTestId('order-confirmation')).toHaveText('Thank you for your purchase!');
+  });
+
+  test('cancel on the order confirmation keeps the cart intact', async ({ authenticatedPage: page }) => {
+    await page.goto('/');
+    await addToCart(page, 'Coffee Mug');
+
+    // 1. Reach the checkout and open the confirmation modal.
+    await page.getByTestId('cart-link').click();
+    await page.getByTestId('proceed-to-checkout').click();
+    await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
+    await page.getByTestId('place-order').click();
+    const modal = page.getByTestId('confirm-order-modal');
+    await expect(modal).toBeVisible();
+
+    // 2. Cancel; no order is placed and the cart is unchanged (the # fragment from the cancel link stays).
+    await modal.getByTestId('cancel-order').click();
+    await expect(page).toHaveURL(/\/checkout/);
+    await expect(modal).toBeHidden();
+    await expect(page.getByTestId('place-order')).toBeVisible();
+    await page.goto('/cart');
+    await expect(page.getByTestId('cart-item')).toHaveCount(1);
+    await expect(page.getByTestId('cart-count')).toHaveText('1');
   });
 
   test('checkout with an empty cart shows the empty state and no order button', async ({ authenticatedPage: page }) => {

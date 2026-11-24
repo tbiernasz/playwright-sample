@@ -43,7 +43,11 @@ Prefer `getByTestId`, then `getByRole` / `getByLabel`, then `getByText` (per `AG
 | `/cart` | Proceed to checkout | `getByRole('button', { name: 'Proceed to checkout' })` | `proceed-to-checkout` |
 | `/checkout` | Page heading | `getByRole('heading', { name: 'Checkout' })` | — |
 | `/checkout` | Total | `getByTestId('checkout-total')` | `checkout-total` |
-| `/checkout` | Place order | `getByRole('button', { name: 'Place order' })` | `place-order` |
+| `/checkout` | Place order (opens confirm modal) | `getByTestId('place-order')` | `place-order` |
+| `/checkout` | Confirm order modal | `getByTestId('confirm-order-modal')` | `confirm-order-modal` |
+| `/checkout` | Confirm modal total | `getByTestId('confirm-order-total')` | `confirm-order-total` |
+| `/checkout` | Confirm submit | `getByTestId('confirm-order')` | `confirm-order` |
+| `/checkout` | Cancel order | `getByTestId('cancel-order')` | `cancel-order` |
 | Confirmation | Page heading | `getByRole('heading', { name: 'Order confirmed' })` | — |
 | Confirmation | Thank-you message | `getByTestId('order-confirmation')` | `order-confirmation` |
 | Confirmation | Order number | `getByTestId('order-number')` | `order-number` |
@@ -76,7 +80,10 @@ Note: cart lines show the product name, quantity, and a separate line total. Che
     - expect: The order summary lists 'Coffee Mug × 1' with a price of $10.00
     - expect: The total (data-testid=checkout-total) reads 'Total: $10.00'
     - expect: The 'Place order' button (data-testid=place-order) is visible
-  5. Click the 'Place order' button (data-testid=place-order).
+  5. Click the 'Place order' link (data-testid=place-order).
+    - expect: The confirmation modal (data-testid=confirm-order-modal) is visible with the 'Confirm your order' heading
+    - expect: The modal total (data-testid=confirm-order-total) reads '$10.00'
+  6. Click 'Place order' inside the modal (data-testid=confirm-order).
     - expect: The 'Order confirmed' heading (level 1) is visible
     - expect: The confirmation message (data-testid=order-confirmation) reads 'Thank you for your purchase!'
     - expect: An order number (data-testid=order-number) matching `#\d+` is displayed
@@ -99,7 +106,9 @@ Note: cart lines show the product name, quantity, and a separate line total. Che
     - expect: The 'Checkout' heading is visible
     - expect: Both items are listed in the order summary
     - expect: The total (data-testid=checkout-total) reads 'Total: $30.00' (10 + 20)
-  5. Click the 'Place order' button (data-testid=place-order).
+  5. Click the 'Place order' link (data-testid=place-order); the confirmation modal (data-testid=confirm-order-modal) opens with the total (data-testid=confirm-order-total) reading '$30.00'.
+    - expect: The modal total matches the summary total
+  6. Click 'Place order' inside the modal (data-testid=confirm-order).
     - expect: The 'Order confirmed' heading is visible
     - expect: The 'Thank you for your purchase!' message is displayed
 
@@ -142,7 +151,8 @@ Note: cart lines show the product name, quantity, and a separate line total. Che
 
 The suite also covers:
 
-- `tests/e2e/cart.spec.ts`: duplicate adds merge into one line, quantity increase/decrease updates totals and removes at zero, and clearing empties everything.
+- `tests/e2e/cart.spec.ts`: duplicate adds merge into one line, quantity increase/decrease updates totals and removes at zero, and clearing (with confirmation) empties everything. Cancelling the clear-cart dialog keeps all items.
+- `tests/e2e/checkout.spec.ts`: cancelling the order confirmation modal keeps the cart intact (no order placed, no navigation).
 - `tests/api/shop-api.spec.ts`: catalog JSON, login/logout, session cart add/update/remove/clear, checkout, auth redirects, and 405 handling.
 
 ## Assumptions & Notes
