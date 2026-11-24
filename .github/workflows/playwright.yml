@@ -85,6 +85,48 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+      - name: Upload machine-readable results (JUnit + JSON)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results-${{ github.run_attempt }}
+          path: |
+            junit.xml
+            results.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  e2e-flaky:
+    # Quarantined @flaky tests: excluded from the required jobs above (per-project
+    # filter in playwright.config.ts) and run here, separately, non-blocking.
+    # See CI-CD-PLAN.md, Phase 3 "Flake tracking" for the quarantine policy.
+    name: E2E quarantined tests (non-blocking)
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    env:
+      PLAYWRIGHT_QUARANTINE: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps firefox
+      # Zero quarantined tests today -> an empty selection still passes.
+      - run: npx playwright test --project=firefox --project=firefox-anon --pass-with-no-tests
+      - name: Upload machine-readable results (JUnit + JSON)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-flaky-results-${{ github.run_attempt }}
+          path: |
+            junit.xml
+            results.json
+          if-no-files-found: warn
+          retention-days: 14
 
   pages:
     name: Publish report
