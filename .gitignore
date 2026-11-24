@@ -5,6 +5,8 @@ node_modules/
 test-results/
 playwright-report/
 blob-report/
+junit.xml
+results.json
 playwright/.cache/
 *.trace
 

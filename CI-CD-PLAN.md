@@ -365,6 +365,20 @@ Adopt when E2E p95 > 5 minutes or the suite exceeds ~100 tests.
 - Optional CodeQL/default security setup.
 - Review cost monthly: runner minutes, artifact retention, shard count.
 
+#### Flake tracking & quarantine policy
+
+Flaky tests are quarantined instead of being retried into invisibility:
+
+1. **Tag** — add `@flaky` to the test title, e.g. `test('adds to cart @flaky', ...)`. The tag travels with the test and is visible in every report.
+2. **Exclude** — in CI, the required `e2e`/`api` jobs automatically *exclude* `@flaky` tests (per-project `grepInvert` in `playwright.config.ts`), so a quarantined test can never block a merge.
+3. **Run separately** — the non-blocking `e2e-flaky` job runs *only* `@flaky` tests (`PLAYWRIGHT_QUARANTINE=1` selects them). It never blocks a merge; it keeps quarantine visible and proves a fix before the test leaves quarantine.
+4. **Track** — both jobs upload `junit.xml` + `results.json` (artifacts `e2e-results-*` / `e2e-flaky-results-*`), ready to feed any JUnit-capable dashboard.
+5. **Promote** — once the root cause is fixed, remove `@flaky` from the title and confirm the test is green on a full (non-quarantined) run. It re-enters the required suite on the next push.
+
+`setup` (auth) is never filtered: a dependency project with zero matching tests would make Playwright skip its dependents.
+
+> **Status (Nov 2026):** zero tests are quarantined. This is the mechanism — tag a test the moment it starts flaking on CI.
+
 ---
 
 ## 6. Reference workflows
