@@ -1,5 +1,5 @@
 # CodeQL security analysis (Phase 3, optional item).
-# Standard default setup: init -> autobuild -> analyze, js-ts extractor.
+# Standard default setup: init -> autobuild -> analyze, JS/TS extractor.
 #
 # github/codeql-action is intentionally pinned to the MAJOR tag (@v4), not a
 # commit SHA: the action's server-side analysis flags change in ways that can
@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - language: js-ts
+          - language: javascript-typescript
             queries: security-and-quality
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
