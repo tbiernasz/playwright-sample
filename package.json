@@ -5,6 +5,7 @@
   "scripts": {
     "start:mock": "node app/server.js",
     "test": "playwright test",
+    "test:firefox": "playwright test --project=setup --project=firefox --project=firefox-anon",
     "test:headed": "playwright test --headed",
     "test:headed:slow": "playwright test --headed --workers=1",
     "test:smoke": "playwright test --grep @smoke",

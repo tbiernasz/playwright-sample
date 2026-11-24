@@ -39,16 +39,20 @@ export default defineConfig({
       testMatch: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/],
       use: { ...devices['Desktop Chrome'] },
     },
-    // Uncomment to run cross-browser:
-    // {
-    //   name: 'firefox',
-    //   testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //     storageState: 'tests/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
+    {
+      name: 'firefox',
+      testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
+      use: {
+        ...devices['Desktop Firefox'],
+        storageState: 'tests/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'firefox-anon',
+      testMatch: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/],
+      use: { ...devices['Desktop Firefox'] },
+    },
     // {
     //   name: 'webkit',
     //   testIgnore: [/login\.spec\.ts/, /auth-guard\.spec\.ts/, /navigation\.spec\.ts/, /seed\.spec\.ts/],
