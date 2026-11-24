@@ -19,6 +19,9 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    launchOptions: {
+      slowMo: process.env.SLOWMO ? parseInt(process.env.SLOWMO, 10) : 0,
+    },
   },
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
