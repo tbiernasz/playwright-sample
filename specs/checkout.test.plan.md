@@ -48,7 +48,7 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
 
 #### 1.1. user can add an item to the cart and complete checkout
 
-**File:** `tests/checkout.spec.ts`
+**File:** `tests/e2e/checkout.spec.ts`
 
 **Steps:**
   1. Navigate to the dashboard (GET /). Precondition: authenticated session (storageState from tests/auth.setup.ts) with an empty cart.
@@ -74,7 +74,7 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
 
 #### 1.2. checkout total reflects the sum of multiple cart items
 
-**File:** `tests/checkout.spec.ts`
+**File:** `tests/e2e/checkout.spec.ts`
 
 **Steps:**
   1. Navigate to the dashboard (GET /). Precondition: authenticated session with an empty cart.
@@ -98,7 +98,7 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
 
 #### 2.1. login with a wrong password shows an error and does not log in
 
-**File:** `tests/login.spec.ts`
+**File:** `tests/e2e/login.spec.ts`
 
 **Steps:**
   1. Open a fresh, unauthenticated browser context (no stored storageState, e.g. browser.newContext() without storageState) and navigate to /login.
@@ -118,7 +118,7 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
 
 #### 3.1. first visit to the cart shows an empty state
 
-**File:** `tests/cart.spec.ts`
+**File:** `tests/e2e/cart.spec.ts`
 
 **Steps:**
   1. Navigate to /cart directly, without adding any items. Precondition: a fresh authenticated session with an empty cart (nothing has been added this session).
@@ -131,7 +131,7 @@ Note: cart/checkout items render with an em-dash, e.g. `Coffee Mug — $10.00`.
 
 - **Fresh state per scenario:** Each scenario assumes a blank/fresh browser state. Playwright isolates every test in its own browser context, and the server keys the cart by the `sid` session cookie, so cart state is independent across tests — scenarios can be run in any order.
 - **Authenticated suites:** The *Checkout Flow* and *Cart State* suites reuse the `storageState` from `tests/auth.setup.ts` (a new session is created per run, so the cart starts empty).
-- **Login suite is unauthenticated:** The *Login* suite must run in a fresh, unauthenticated context (e.g. `browser.newContext()` with no `storageState`). This is required because the default `chromium` project in `playwright.config.ts` applies the stored auth state, which would otherwise redirect `/login` straight to the dashboard.
+- **Login suite is unauthenticated:** The *Login* suite must run in a fresh, unauthenticated context (e.g. `browser.newContext()` with no `storageState`). This is required because the default `firefox` project in `playwright.config.ts` applies the stored auth state, which would otherwise redirect `/login` straight to the dashboard.
 - **Add-to-cart is a form POST:** Clicking "Add to cart" posts to `/cart/add` and redirects back to the dashboard; the cart is not updated client-side, so assert on the cart page after navigating to it.
 - **Checkout clears the cart:** Placing an order empties the cart server-side. Visiting `/cart` afterwards shows the empty state.
 - **Assertions:** Use web-first assertions only (`toBeVisible()`, `toHaveText()`, `not.toBeVisible()`). Do not use `page.waitForTimeout()`, raw CSS/XPath without justification, or `page.evaluate()` for assertions (see `AGENTS.md`).

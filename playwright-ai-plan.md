@@ -1,5 +1,10 @@
 # Playwright + AI Test Automation Plan
 
+> [!NOTE]
+> This was the original setup plan. The final implementation differs in some details
+> (e.g. `.mcp.json` was dropped in favour of `opencode.json`).
+> See README.md for the current state.
+
 ## Current State
 
 - [x] llama.cpp running locally
@@ -52,7 +57,7 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
   ],
 });
 ```
